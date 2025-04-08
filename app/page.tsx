@@ -4,7 +4,6 @@ import { HeroSection } from "@/components/hero-section"
 import { ServicesSection } from "@/components/services-section"
 import { AboutSection } from "@/components/about-section"
 import { ContactSection } from "@/components/contact-section"
-import { Analytics } from "@vercel/analytics/react"
 
 export default function Home() {
   return (
@@ -17,7 +16,7 @@ export default function Home() {
         <ContactSection />
         <div className="fixed bottom-6 right-6 z-50">
           <a
-            href="https://wa.me/5511970531074"
+            href="https://api.whatsapp.com/send?1=pt_BR&phone=5511970531074&text=Olá, gostaria de mais informações sobre seus serviços."
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center w-14 h-14 bg-green-500 rounded-full shadow-lg hover:bg-green-600 transition-colors"

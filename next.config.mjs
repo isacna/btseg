@@ -16,6 +16,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  allowedDevOrigins: ['http://localhost:3000', '10.0.50.122:3000'],
   experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
