@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SuccessModal } from "@/components/success-modal"
 import { ErrorModal } from "@/components/error-modal"
 import { LoadingModal } from "@/components/loading-modal"
+import { CooldownModal } from "@/components/cooldown-modal"
+import { useEmail } from "@/contexts/email-context"
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -39,6 +41,11 @@ export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [showErrorModal, setShowErrorModal] = useState(false)
+  const [showCooldownModal, setShowCooldownModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string>()
+  const [timeLeft, setTimeLeft] = useState(0)
+
+  const { canSendEmail, lastEmailSent, setLastEmailSent } = useEmail()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,7 +59,29 @@ export function ContactForm() {
     },
   })
 
+  useEffect(() => {
+    if (lastEmailSent) {
+      const interval = setInterval(() => {
+        const now = Date.now()
+        const timePassed = now - lastEmailSent
+        const timeRemaining = Math.max(0, Math.ceil((600 - timePassed / 1000)))
+        setTimeLeft(timeRemaining)
+
+        if (timeRemaining === 0) {
+          clearInterval(interval)
+        }
+      }, 1000)
+
+      return () => clearInterval(interval)
+    }
+  }, [lastEmailSent])
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!canSendEmail) {
+      setShowCooldownModal(true)
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -67,12 +96,15 @@ export function ContactForm() {
       const data = await response.json()
 
       if (data.type === "error") {
+        setErrorMessage(data.message)
         setShowErrorModal(true)
       } else {
+        setLastEmailSent(Date.now())
         setShowSuccessModal(true)
         form.reset()
       }
     } catch (error) {
+      setErrorMessage("Erro ao enviar mensagem. Por favor, tente novamente mais tarde.")
       setShowErrorModal(true)
     } finally {
       setIsSubmitting(false)
@@ -154,12 +186,12 @@ export function ContactForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="seguranca">Segurança do Trabalho</SelectItem>
-                    <SelectItem value="medicina">Medicina Ocupacional</SelectItem>
-                    <SelectItem value="documentacao">Documentação Legal</SelectItem>
-                    <SelectItem value="treinamentos">Treinamentos</SelectItem>
-                    <SelectItem value="consultoria">Consultoria Empresarial</SelectItem>
-                    <SelectItem value="outros">Outros Serviços</SelectItem>
+                    <SelectItem value="Segurança do Trabalho">Segurança do Trabalho</SelectItem>
+                    <SelectItem value="Medicina Ocupacional">Medicina Ocupacional</SelectItem>
+                    <SelectItem value="Documentação Legal">Documentação Legal</SelectItem>
+                    <SelectItem value="Treinamentos">Treinamentos</SelectItem>
+                    <SelectItem value="Consultoria Empresarial">Consultoria Empresarial</SelectItem>
+                    <SelectItem value="Outros Serviços">Outros Serviços</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -185,7 +217,11 @@ export function ContactForm() {
             )}
           />
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isSubmitting || !canSendEmail}
+          >
             {isSubmitting ? "Enviando..." : "Enviar Mensagem"}
           </Button>
         </form>
@@ -198,7 +234,13 @@ export function ContactForm() {
       />
       <ErrorModal 
         isOpen={showErrorModal} 
-        onClose={() => setShowErrorModal(false)} 
+        onClose={() => setShowErrorModal(false)}
+        message={errorMessage}
+      />
+      <CooldownModal 
+        isOpen={showCooldownModal} 
+        onClose={() => setShowCooldownModal(false)}
+        timeLeft={timeLeft}
       />
     </>
   )

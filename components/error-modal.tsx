@@ -11,9 +11,10 @@ import {
 interface ErrorModalProps {
   isOpen: boolean
   onClose: () => void
+  message?: string
 }
 
-export function ErrorModal({ isOpen, onClose }: ErrorModalProps) {
+export function ErrorModal({ isOpen, onClose, message }: ErrorModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -23,7 +24,7 @@ export function ErrorModal({ isOpen, onClose }: ErrorModalProps) {
           </div>
           <DialogTitle className="text-center">Erro ao enviar mensagem</DialogTitle>
           <DialogDescription className="text-center">
-            Não foi possível enviar sua mensagem. Por favor, tente novamente mais tarde.
+            {message || "Não foi possível enviar sua mensagem. Por favor, tente novamente mais tarde."}
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-center mt-4">
