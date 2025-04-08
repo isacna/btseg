@@ -32,9 +32,7 @@ export function middleware(request: NextRequest) {
     })
 
     const origin = request.headers.get('origin')
-    const allowedOrigin = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_APP_URL
+    const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL
 
     if (origin && allowedOrigin && !origin.includes(allowedOrigin)) {
       return new NextResponse(
