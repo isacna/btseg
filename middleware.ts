@@ -38,7 +38,7 @@ export function middleware(request: NextRequest) {
 
     if (origin && allowedOrigin && !origin.includes(allowedOrigin)) {
       return new NextResponse(
-        JSON.stringify({ error: 'Invalid origin' }),
+        JSON.stringify({ error: `Invalid origin: ${origin}` }),
         { status: 403, headers: { 'Content-Type': 'application/json' } }
       )
     }
